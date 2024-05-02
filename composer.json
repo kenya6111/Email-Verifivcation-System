@@ -1,0 +1,29 @@
+{
+    "require":{
+        "fakerphp/faker": "^1.23",
+        "nesbot/carbon": "^3.1",
+        "phpmailer/phpmailer": "^6.9"
+    },
+    "autoload":{
+        "psr-4": {
+            "Helpers\\":"Helpers/",
+            "Exceptions\\":"Exceptions/",
+            "Database\\":"Database/",
+            "Commands\\":"Commands/",
+            "Commands\\Programs\\":"Commands/Programs/",
+            "Database\\Seeds\\":"Database/Seeds/",
+            "Response\\":"Response/",
+            "Response\\Render\\":"Response/Render/",
+            "Models\\":"Models/",
+            "Models\\Interfaces\\":"Models/Interfaces/",
+            "Models\\Traits\\":"Models/Traits/",
+            "Database\\DataAccess\\Interfaces\\":"Database/DataAccess/Interfaces/",
+            "Database\\DataAccess\\Implementations\\":"Database/DataAccess/Implementations/",
+            "Database\\DataAccess\\":"Database/DataAccess/",
+            "Types\\":"Types/",
+            "Database\\SeedsDao\\":"Database/SeedsDao/",
+            "Middleware\\":"Middleware/",
+            "Routing\\":"Routing/"
+        }
+    }
+}
