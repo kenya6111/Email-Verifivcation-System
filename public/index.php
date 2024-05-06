@@ -9,7 +9,7 @@ spl_autoload_register();
 header("Access-Control-Allow-Origin: *");
 require_once "vendor/autoload.php";
 require_once "Middleware/MiddlewareHandler.php";
-//use Middleware\MiddlewareHandler;
+// use Middleware\MiddlewareHandler;
 $DEBUG = true;
 
 if (preg_match('/\.(?:png|jpg|jpeg|gif|js|css|html)$/', $_SERVER["REQUEST_URI"])) {

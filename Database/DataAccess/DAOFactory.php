@@ -10,6 +10,9 @@ use Database\DataAccess\Implementations\UserDAOImpl;
 use Database\DataAccess\Interfaces\UserDAO;
 use Helpers\Settings;
 
+use Database\DataAccess\Implementations\PostDAOImpl;
+use Database\DataAccess\Interfaces\PostDAO;
+
 
 class DAOFactory
 {
@@ -28,6 +31,15 @@ class DAOFactory
         return match ($driver) {
             //'memcached' => new ComputerPartDAOMemcachedImpl(),
             default => new UserDAOImpl(),
+        };
+    }
+
+    public static function getPostDAO(): PostDAO{
+        $driver = Settings::env('DATABASE_DRIVER');
+
+        return match ($driver) {
+            //'memcached' => new ComputerPartDAOMemcachedImpl(),
+            default => new PostDAOImpl(),
         };
     }
 }

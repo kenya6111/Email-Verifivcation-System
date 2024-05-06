@@ -14,6 +14,7 @@ use Response\Render\MediaRenderer;
 use Database\DataAccess\Implementations\ComputerPartDAOImpl;
 use Models\ComputerPart;
 use Models\User;
+use Models\Post;
 use Types\ValueType;
 use Database\DataAccess\DAOFactory;
 use Exceptions\AuthenticationFailureException;
@@ -116,7 +117,7 @@ return [
             Mail::sendVerificationEmail($url, $user->getEmail());
             FlashData::setFlashData('success', 'We have sent a verification email to your email address!');
 
-            return new RedirectRenderer('random/part');
+            return new RedirectRenderer('random/part');// ここの遷移先を「メール送信しました」的な画面にしようか。
         } catch (\InvalidArgumentException $e) {
             error_log($e->getMessage());
 
@@ -286,7 +287,8 @@ return [
 
             FlashData::setFlashData('success', 'Your registration has been completed!');
 
-            return new RedirectRenderer('update/part');
+            // return new RedirectRenderer('update/part');
+            return new RedirectRenderer('homepage');
         } catch (\InvalidArgumentException $e) {
             error_log($e->getMessage());
 
@@ -379,4 +381,155 @@ return [
             return new RedirectRenderer('verify/resend');
         }
     }),
+
+    'homepage' => Route::create('homepage', function (): HTTPRenderer {
+        // $user = Authenticate::getAuthenticatedUser();
+        // $part = null;
+        // $partDao = DAOFactory::getComputerPartDAO();
+        // if(isset($_GET['id'])){
+        //     $id = ValidationHelper::integer($_GET['id']);
+        //     $part = $partDao->getById($id);
+        //     if($user->getId() !== $part->getSubmittedById()){
+        //         FlashData::setFlashData('error', 'Only the author can edit this computer part.');
+        //         return new RedirectRenderer('register');
+        //     }
+        // }
+        $postDao = DAOFactory::getPostDAO();
+        $posts = $postDao->getPostsOrderedByLikesDesc();
+        return new HTMLRenderer('page/home',['posts'=>$posts]);
+    })->setMiddleware(['auth']),
+    'form/post' => Route::create('form/post', function (): HTMLRenderer {
+        try {
+            // リクエストメソッドがPOSTかどうかをチェックします
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') throw new Exception('Invalid request method!');
+
+            $required_fields = [
+                'text' => ValueType::STRING,
+            ];
+            // 入力に対する単純な認証。実際のシナリオでは、要件を満たす完全な認証が必要になることがあります
+            $validatedData = ValidationHelper::validateFields($required_fields, $_POST);
+
+
+            $postDao = DAOFactory::getPostDAO();
+
+            // シンプルな検証
+            //$validatedData = ValidationHelper::validateFields($required_fields, $_POST);
+            $tmpPath = $_FILES['file-upload']['tmp_name'];
+            $finfo = new finfo(FILEINFO_MIME_TYPE);
+            $mime = $finfo->file($tmpPath);
+            $byteSize = filesize($tmpPath);
+
+            $ipAddress = $_SERVER['REMOTE_ADDR'];
+             /* 拡張子情報の取得・セット */
+             $imginfo = getimagesize($_FILES['file-upload']['tmp_name']);
+            if($imginfo['mime'] == 'image/jpeg'){ $extension = ".jpg"; }
+            if($imginfo['mime'] == 'image/png'){ $extension = ".png"; }
+            if($imginfo['mime'] == 'image/gif'){ $extension = ".gif"; }
+
+            $extension = explode('/', $mime)[1];
+
+            $filename = hash('sha256', uniqid(mt_rand(), true)) . '.' . $extension;
+            $uploadDir =   './uploads/'; 
+            $subdirectory = substr($filename, 0, 2);
+            $imagePath = $uploadDir .  $subdirectory. '/' . $filename;
+            // アップロード先のディレクトリがない場合は作成
+            if(!is_dir(dirname($imagePath))){
+                mkdir(dirname($imagePath),0777,true);
+                chmod(dirname($imagePath), 0775);
+            }
+            // $imagesDir =   './images/';
+            // $svgfilename = 'checkmark.svg';
+            // chmod(dirname($imagesDir.$svgfilename), 0775);
+
+            // アップロードにした場合は失敗のメッセージを送る
+            if(move_uploaded_file($tmpPath, $imagePath)){
+                chmod($imagePath, 0664);
+            }else{
+                return new JSONRenderer(['success' => false, 'message' => 'アップロードに失敗しました。']);
+            }
+
+            $hash_for_shared_url = hash('sha256', uniqid(mt_rand(), true));
+            // $hash_for_delete_url = hash('sha256', uniqid(mt_rand(), true));
+            $shared_url = '/' . $extension . '/' . $hash_for_shared_url;
+            // $delete_url = '/' .  'delete' . '/' . $hash_for_delete_url;
+            $imagePathFromUploadDir = $subdirectory . '/'.$filename;
+
+            $message = $validatedData['text'];
+            
+            $result = $postDao->create($message,$imagePathFromUploadDir,$_FILES['file-upload']['name'],$_FILES['file-upload']['type'],$_FILES['file-upload']['size'],$shared_url);
+
+            $posts = $postDao->getPostsOrderedByLikesDesc();
+            
+
+            return new HTMLRenderer('page/home',['posts'=>$posts]);
+            
+        } catch (\InvalidArgumentException $e) {
+            error_log($e->getMessage());
+
+            FlashData::setFlashData('error', 'Invalid Data.');
+            return new RedirectRenderer('register');
+        } catch (Exception $e) {
+            error_log($e->getMessage());
+
+            FlashData::setFlashData('error', 'An error occurred.');
+            return new RedirectRenderer('register');
+        }
+    })->setMiddleware(['auth']),
+    'profile' => Route::create('profile', function (): HTTPRenderer {
+        $userDao = DAOFactory::getUserDAO();
+        $user = null;
+        if(isset($_GET['user_id'])){
+            $id = ValidationHelper::integer($_GET['user_id']);
+            $user = $userDao->getById($id);
+        }
+
+
+        $postDao = DAOFactory::getPostDAO();
+        $posts = $postDao->getById($_GET['user_id']);
+
+
+        return new HTMLRenderer('component/profile',['user' => $user, 'posts' => $posts,]);
+    })->setMiddleware(['auth']),
+    'notice' => Route::create('notice', function (): HTTPRenderer {
+        // $user = Authenticate::getAuthenticatedUser();
+        // $part = null;
+        // $partDao = DAOFactory::getComputerPartDAO();
+        // if(isset($_GET['id'])){
+        //     $id = ValidationHelper::integer($_GET['id']);
+        //     $part = $partDao->getById($id);
+        //     if($user->getId() !== $part->getSubmittedById()){
+        //         FlashData::setFlashData('error', 'Only the author can edit this computer part.');
+        //         return new RedirectRenderer('register');
+        //     }
+        // }
+        return new HTMLRenderer('component/notifications');
+    })->setMiddleware(['auth']),
+    'message' => Route::create('message', function (): HTTPRenderer {
+        // $user = Authenticate::getAuthenticatedUser();
+        // $part = null;
+        // $partDao = DAOFactory::getComputerPartDAO();
+        // if(isset($_GET['id'])){
+        //     $id = ValidationHelper::integer($_GET['id']);
+        //     $part = $partDao->getById($id);
+        //     if($user->getId() !== $part->getSubmittedById()){
+        //         FlashData::setFlashData('error', 'Only the author can edit this computer part.');
+        //         return new RedirectRenderer('register');
+        //     }
+        // }
+        return new HTMLRenderer('component/message');
+    })->setMiddleware(['auth']),
+    'follow' => Route::create('follow', function (): HTTPRenderer {
+        // $user = Authenticate::getAuthenticatedUser();
+        // $part = null;
+        // $partDao = DAOFactory::getComputerPartDAO();
+        // if(isset($_GET['id'])){
+        //     $id = ValidationHelper::integer($_GET['id']);
+        //     $part = $partDao->getById($id);
+        //     if($user->getId() !== $part->getSubmittedById()){
+        //         FlashData::setFlashData('error', 'Only the author can edit this computer part.');
+        //         return new RedirectRenderer('register');
+        //     }
+        // }
+        return new HTMLRenderer('component/follow');
+    })->setMiddleware(['auth']),
 ];
