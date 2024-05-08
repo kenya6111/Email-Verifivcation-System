@@ -383,17 +383,6 @@ return [
     }),
 
     'homepage' => Route::create('homepage', function (): HTTPRenderer {
-        // $user = Authenticate::getAuthenticatedUser();
-        // $part = null;
-        // $partDao = DAOFactory::getComputerPartDAO();
-        // if(isset($_GET['id'])){
-        //     $id = ValidationHelper::integer($_GET['id']);
-        //     $part = $partDao->getById($id);
-        //     if($user->getId() !== $part->getSubmittedById()){
-        //         FlashData::setFlashData('error', 'Only the author can edit this computer part.');
-        //         return new RedirectRenderer('register');
-        //     }
-        // }
         $postDao = DAOFactory::getPostDAO();
         $posts = $postDao->getPostsOrderedByLikesDesc();
         return new HTMLRenderer('page/home',['posts'=>$posts]);
@@ -483,12 +472,11 @@ return [
             $user = $userDao->getById($id);
         }
 
-
         $postDao = DAOFactory::getPostDAO();
         $posts = $postDao->getById($_GET['user_id']);
 
 
-        return new HTMLRenderer('component/profile',['user' => $user, 'posts' => $posts,]);
+        return new HTMLRenderer('component/profile',['user' => $user, 'posts' => $posts,'loginUserId' => $_SESSION['user_id']]);
     })->setMiddleware(['auth']),
     'notice' => Route::create('notice', function (): HTTPRenderer {
         // $user = Authenticate::getAuthenticatedUser();

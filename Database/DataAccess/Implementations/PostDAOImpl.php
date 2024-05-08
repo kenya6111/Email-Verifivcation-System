@@ -64,20 +64,20 @@ class PostDAOImpl implements PostDAO
     private function getRawOrderedByLikesDesc(): ?array{
         $mysqli = DatabaseManager::getMysqliConnection();
 
-        $query = "SELECT posts.*, 
-                         users.username,
-                         users.id,
-                         COUNT(likes.post_id) AS like_count
-                    FROM posts
-                    LEFT JOIN likes
-                    ON posts.post_id= likes.post_id
-                    LEFT JOIN users
-                    ON likes.user_id= users.id
-                    GROUP BY 
-                        posts.post_id, users.username,users.id
-                    ORDER BY 
-                        like_count DESC
-                    LIMIT 20";
+        $query = "SELECT posts.*,
+                    COUNT(posts.post_id) AS like_count,
+                    users.username,
+                    users.id
+                FROM posts
+                LEFT JOIN users
+                ON posts.user_id= users.id
+                LEFT JOIN likes
+                ON posts.post_id= likes.post_id
+                GROUP BY 
+                posts.post_id,users.username,users.id
+                ORDER BY
+                like_count DESC
+                LIMIT 20;";
 
         $result = $mysqli->query($query)->fetch_all(MYSQLI_ASSOC) ?? null;
 

@@ -74,15 +74,23 @@ $dummyposts=[
     <div class="col-8  d-flex flex-column justify-content-center border ">
         <!-- トレンドorフォロワー-->
         <div class="btn-group border-bottom" role="group" aria-label="Basic example">
-            <span class="material-symbols-outlined fs-2">arrow_back</span>
-            <div class="pt-1">tnk@engineer</div>
+            <a href="/homepage">
+                <span class="material-symbols-outlined fs-2">arrow_back</span>
+            </a>
+            <div class="pt-1"><?= htmlspecialchars($user->getUsername()); ?></div>
         </div>
         <div>
             <span class="material-symbols-outlined mt-4 fs-1">account_circle</span>
         </div>
-        <div>
+        <div class="d-flex align-items-center">
             <h4 class="mb-0"><?= htmlspecialchars($user->getUsername()); ?></h4>
+            <?php if ($user->getId() == $loginUserId):?>
+                <button id="edit-button" class="btn btn-primary ms-auto rounded-pill">編集する</button>
+            <?php else: ?>
+                <button id="follow-btn" class="btn btn-primary ms-auto rounded-pill">フォローする</button>
+            <?php endif; ?>
         </div>
+        
         <div>
             <p>@ngh_nq</p>
         </div>
