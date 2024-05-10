@@ -387,7 +387,7 @@ return [
         $posts = $postDao->getPostsOrderedByLikesDesc();
         return new HTMLRenderer('page/home',['posts'=>$posts]);
     })->setMiddleware(['auth']),
-    'form/post' => Route::create('form/post', function (): HTMLRenderer {
+    'form/post' => Route::create('form/post', function (): HTTPRenderer {
         try {
             // リクエストメソッドがPOSTかどうかをチェックします
             if ($_SERVER['REQUEST_METHOD'] !== 'POST') throw new Exception('Invalid request method!');
@@ -450,7 +450,8 @@ return [
             $posts = $postDao->getPostsOrderedByLikesDesc();
             
 
-            return new HTMLRenderer('page/home',['posts'=>$posts]);
+            // return new HTMLRenderer('page/home',['posts'=>$posts]);
+            return new RedirectRenderer('homepage');
             
         } catch (\InvalidArgumentException $e) {
             error_log($e->getMessage());
@@ -477,6 +478,30 @@ return [
 
 
         return new HTMLRenderer('component/profile',['user' => $user, 'posts' => $posts,'loginUserId' => $_SESSION['user_id']]);
+    })->setMiddleware(['auth']),
+    'follow' => Route::create('follow', function (): HTTPRenderer {
+        $userDao = DAOFactory::getUserDAO();
+        $user = null;
+        if(isset($_POST['user_id'])){
+            $id = ValidationHelper::integer($_POST['user_id']);
+            $result = $userDao->insertFollowRecord($id,$_SESSION['user_id']);
+        }
+
+        // return new HTMLRenderer('component/profile',['status' => $result]);
+        // return new RedirectRenderer('profile');  
+        return new JSONRenderer(['status' => $result]);
+    })->setMiddleware(['auth']),
+    'unfollow' => Route::create('follow', function (): HTTPRenderer {
+        $userDao = DAOFactory::getUserDAO();
+        $user = null;
+        if(isset($_POST['user_id'])){
+            $id = ValidationHelper::integer($_POST['user_id']);
+            $result = $userDao->deleteFollowRecord($id,$_SESSION['user_id']);
+        }
+
+        // return new HTMLRenderer('component/profile',['status' => $result]);
+        // return new RedirectRenderer('profile');  
+        return new JSONRenderer(['status' => $result]);
     })->setMiddleware(['auth']),
     'notice' => Route::create('notice', function (): HTTPRenderer {
         // $user = Authenticate::getAuthenticatedUser();
@@ -506,7 +531,7 @@ return [
         // }
         return new HTMLRenderer('component/message');
     })->setMiddleware(['auth']),
-    'follow' => Route::create('follow', function (): HTTPRenderer {
+    'followList' => Route::create('follow', function (): HTTPRenderer {
         // $user = Authenticate::getAuthenticatedUser();
         // $part = null;
         // $partDao = DAOFactory::getComputerPartDAO();

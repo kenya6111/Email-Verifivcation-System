@@ -128,4 +128,31 @@ class UserDAOImpl implements UserDAO
     {
         return $this->getRawById($id)['password']??null;
     }
+
+    public function insertFollowRecord(int $id, int $loginUser): bool
+    {
+        $mysqli = DatabaseManager::getMysqliConnection();
+
+        $query = "INSERT INTO follows (follower_id, followed_id) VALUES (?, ?);";
+
+        $mysqli->prepareAndExecute($query, 'ii', [$loginUser,$id])[0] ?? null;
+
+        return true;
+       
+    }
+
+    public function deleteFollowRecord(int $id, int $loginUser): bool
+    {
+        $mysqli = DatabaseManager::getMysqliConnection();
+
+        $query = "DELETE 
+                  FROM follows 
+                  WHERE follower_id = ?
+                  AND followed_id = ?;";
+
+        $mysqli->prepareAndExecute($query, 'ii', [$loginUser,$id])[0] ?? null;
+
+        return true;
+       
+    }
 }

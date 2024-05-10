@@ -84,10 +84,17 @@ $dummyposts=[
         </div>
         <div class="d-flex align-items-center">
             <h4 class="mb-0"><?= htmlspecialchars($user->getUsername()); ?></h4>
+            <input type="hidden" id="csrf_token" name="csrf_token" value="<?= Helpers\CrossSiteForgeryProtection::getToken(); ?>">
             <?php if ($user->getId() == $loginUserId):?>
-                <button id="edit-button" class="btn btn-primary ms-auto rounded-pill">編集する</button>
+                <div class="ms-auto">
+                    <button id="edit-button" class="btn btn-primary ms-auto rounded-pill">編集する</button>
+                </div>
             <?php else: ?>
-                <button id="follow-btn" class="btn btn-primary ms-auto rounded-pill">フォローする</button>
+                <div class="ms-auto">
+                    <input type="hidden" id="hidden-input" value="<?= htmlspecialchars($user->getId()); ?>">
+                    <button id="follow-btn" class="btn btn-primary ms-auto rounded-pill">フォローする</button>
+                    <button id="un-follow-btn" class="btn btn-light btn-outline-primary ms-auto rounded-pill" style="display:none">フォロー中</button>
+                </div>
             <?php endif; ?>
         </div>
         
