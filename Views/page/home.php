@@ -72,7 +72,9 @@ $dummyposts=[
 <div class="row d-flex w-100">
     <div class="col-2">
         <div>
-            <span class="material-symbols-outlined ms-2 fs-1">account_circle</span>
+        <a href="/profile?user_id=<?= htmlspecialchars($loginUserId);?>">
+                <span class="material-symbols-outlined ms-2 fs-1">account_circle</span>
+            </a>
             <h5 class="ms-3 pt-2"><?=htmlspecialchars($post['username']) ?></h5>    
         </div>
     </div>

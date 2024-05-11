@@ -1,6 +1,6 @@
 <?php
 
-$posts=[
+$dummyposts=[
     [
         "id" => 1,
         "user"=> "tnk@engineer",
@@ -106,15 +106,15 @@ $posts=[
             <div class="tab-pane fade show active" id="follow-list">
                 <!-- Dynamic content for Trend should be loaded here -->
                 <ul id ="list-group" class="list-group list-unstyled">
-                    <?php foreach ($posts as $post): ?>
+                    <?php foreach ($followUsers as $followUser): ?>
                         <li class=" post border-top pt-2 pb-2">
                             <div class="d-flex">
                                 <span class="material-symbols-outlined ms-2 fs-1">account_circle</span>
-                                <h5 class="ms-3 pt-2"><?=htmlspecialchars($post['user']) ?></h5>
+                                <h5 class="ms-3 pt-2"><?= htmlspecialchars($followUser['username']) ?></h5>
                                 <button type="submit" class="btn rounded-pill border ms-auto">フォロー中</button>
                             </div>
                             <div class="mx-5">
-                                <p> <?= htmlspecialchars($post['introduction']) ?> </p>
+                                <p> <?= htmlspecialchars($followUser['self_introduction']) ?> </p>
                             </div>
                         </li>
                     <?php endforeach; ?>
@@ -123,7 +123,21 @@ $posts=[
 
             <!-- フォロワーリスト -->
             <div class="tab-pane fade show active" id="follower-list" style="display: none;">
-                <!-- Dynamic content for Followers should be loaded here -->
+                <!-- Dynamic content for Trend should be loaded here -->
+                <ul id ="list-group" class="list-group list-unstyled">
+                    <?php foreach ($followerUsers as $followerUser): ?>
+                        <li class=" post border-top pt-2 pb-2">
+                            <div class="d-flex">
+                                <span class="material-symbols-outlined ms-2 fs-1">account_circle</span>
+                                <h5 class="ms-3 pt-2"><?= htmlspecialchars($followerUser['username']) ?></h5>
+                                <button type="submit" class="btn rounded-pill border ms-auto">フォロー中</button>
+                            </div>
+                            <div class="mx-5">
+                                <p> <?= htmlspecialchars($followerUser['self_introduction']) ?> </p>
+                            </div>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
                 follower
             </div>
         </div>

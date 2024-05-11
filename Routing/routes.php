@@ -385,7 +385,7 @@ return [
     'homepage' => Route::create('homepage', function (): HTTPRenderer {
         $postDao = DAOFactory::getPostDAO();
         $posts = $postDao->getPostsOrderedByLikesDesc();
-        return new HTMLRenderer('page/home',['posts'=>$posts]);
+        return new HTMLRenderer('page/home',['posts'=>$posts,'loginUserId' => $_SESSION['user_id']]);
     })->setMiddleware(['auth']),
     'form/post' => Route::create('form/post', function (): HTTPRenderer {
         try {
@@ -467,14 +467,15 @@ return [
     })->setMiddleware(['auth']),
     'profile' => Route::create('profile', function (): HTTPRenderer {
         $userDao = DAOFactory::getUserDAO();
-        $user = null;
+        $postDao = DAOFactory::getPostDAO();
+        $user=null;
+        $posts=null;
         if(isset($_GET['user_id'])){
             $id = ValidationHelper::integer($_GET['user_id']);
             $user = $userDao->getById($id);
+            $posts = $postDao->getById($id);
         }
 
-        $postDao = DAOFactory::getPostDAO();
-        $posts = $postDao->getById($_GET['user_id']);
 
 
         return new HTMLRenderer('component/profile',['user' => $user, 'posts' => $posts,'loginUserId' => $_SESSION['user_id']]);
@@ -531,18 +532,14 @@ return [
         // }
         return new HTMLRenderer('component/message');
     })->setMiddleware(['auth']),
-    'followList' => Route::create('follow', function (): HTTPRenderer {
-        // $user = Authenticate::getAuthenticatedUser();
-        // $part = null;
-        // $partDao = DAOFactory::getComputerPartDAO();
-        // if(isset($_GET['id'])){
-        //     $id = ValidationHelper::integer($_GET['id']);
-        //     $part = $partDao->getById($id);
-        //     if($user->getId() !== $part->getSubmittedById()){
-        //         FlashData::setFlashData('error', 'Only the author can edit this computer part.');
-        //         return new RedirectRenderer('register');
-        //     }
-        // }
-        return new HTMLRenderer('component/follow');
+    'followList' => Route::create('followList', function (): HTTPRenderer {
+        //  $user = Authenticate::getAuthenticatedUser();
+         $userDao = DAOFactory::getUserDAO();
+        if(isset($_GET['user_id'])){
+            $id = ValidationHelper::integer($_GET['user_id']);
+            $followUsers = $userDao->getFollowListById($id);
+            $followerUsers = $userDao->getFollowerListById($id);
+        }
+        return new HTMLRenderer('component/follow',['followUsers' => $followUsers,'followerUsers' => $followerUsers]);
     })->setMiddleware(['auth']),
 ];

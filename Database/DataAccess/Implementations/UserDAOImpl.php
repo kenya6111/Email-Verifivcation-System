@@ -57,6 +57,41 @@ class UserDAOImpl implements UserDAO
         if ($result === null) return null;
         return $result;
     }
+
+    private function getFollowRawById(int $id): ?array{
+        $mysqli = DatabaseManager::getMysqliConnection();
+
+        $query = "SELECT 
+        * 
+        FROM follows
+        LEFT JOIN users
+        ON follows.followed_id = users.id
+        WHERE  follows.follower_id = ? ;";
+
+        $result = $mysqli->prepareAndFetchAll($query, 'i', [$id]) ?? null;
+
+        if ($result === null) return null;
+
+        return $result;
+    }
+
+    private function getFollowerRawById(int $id): ?array{
+        $mysqli = DatabaseManager::getMysqliConnection();
+
+        $query = "SELECT 
+        * 
+        FROM follows
+        LEFT JOIN users
+        ON follows.follower_id = users.id
+        WHERE  follows.followed_id = ? ;";
+
+        $result = $mysqli->prepareAndFetchAll($query, 'i', [$id]) ?? null;
+
+        if ($result === null) return null;
+
+        return $result;
+    }
+
     public function update(User $user, string $password, ?string $emailVerifiedAt): bool
     {
         if ($user->getId() === null) throw new \Exception('The specified user has no ID.');
@@ -154,5 +189,21 @@ class UserDAOImpl implements UserDAO
 
         return true;
        
+    }
+
+    public function getFollowListById(int $id): ?array
+    {
+        $userRaws = $this->getFollowRawById($id);
+        if($userRaws === null) return null;
+
+        return $userRaws;
+    }
+
+    public function getFollowerListById(int $id): ?array
+    {
+        $userRaws = $this->getFollowerRawById($id);
+        if($userRaws === null) return null;
+
+        return $userRaws;
     }
 }

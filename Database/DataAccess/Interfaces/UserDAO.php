@@ -13,4 +13,6 @@ interface UserDAO
     public function getHashedPasswordById(int $id): ?string;
     public function insertFollowRecord(int $id, int $loginUser): bool;
     public function deleteFollowRecord(int $id, int $loginUser): bool;
+    public function getFollowListById(int $id): ?array;
+    public function getFollowerListById(int $id): ?array;
 }
