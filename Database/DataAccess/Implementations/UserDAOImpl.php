@@ -206,4 +206,20 @@ class UserDAOImpl implements UserDAO
 
         return $userRaws;
     }
+
+    public function getFollowNumById(int $id): ?int
+    {
+        $userRaws = $this->getFollowRawById($id);
+        if($userRaws === null) return 0;
+
+        return count($userRaws);
+    }
+
+    public function getFollowerNumById(int $id): ?int
+    {
+        $userRaws = $this->getFollowerRawById($id);
+        if($userRaws === null) return 0;
+
+        return count($userRaws);
+    }
 }

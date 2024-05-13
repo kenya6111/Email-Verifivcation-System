@@ -15,4 +15,6 @@ interface UserDAO
     public function deleteFollowRecord(int $id, int $loginUser): bool;
     public function getFollowListById(int $id): ?array;
     public function getFollowerListById(int $id): ?array;
+    public function getFollowNumById(int $id): ?int;
+    public function getFollowerNumById(int $id): ?int;
 }

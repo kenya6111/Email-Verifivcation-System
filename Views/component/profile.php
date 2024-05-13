@@ -104,10 +104,12 @@ $dummyposts=[
         <div class="container my-5">
             <div class="row fs-5">
                 <div class="col-2">
-                    <a href="/followList?user_id=<?= htmlspecialchars($user->getId());?>" style="text-decoration:none;">follow</a>
+                    <?= htmlspecialchars($followNum);?>
+                    <a href="/followList?user_id=<?= htmlspecialchars($user->getId());?>" style="text-decoration:none; color: #000000;">follow</a>
                 </div>
                 <div class="col-2">
-                    <a href="/followList?user_id=<?= htmlspecialchars($user->getId());?>" style="text-decoration:none;">follower</a>
+                    <?= htmlspecialchars($followerNum);?>
+                    <a href="/followList?user_id=<?= htmlspecialchars($user->getId());?>" style="text-decoration:none;  color: #000000;">follower</a>
                 </div>
             </div>
         </div>

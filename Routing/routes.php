@@ -474,11 +474,11 @@ return [
             $id = ValidationHelper::integer($_GET['user_id']);
             $user = $userDao->getById($id);
             $posts = $postDao->getById($id);
+            $followNum = $userDao->getFollowNumById($id);
+            $followerNum = $userDao->getFollowerNumById($id);
         }
 
-
-
-        return new HTMLRenderer('component/profile',['user' => $user, 'posts' => $posts,'loginUserId' => $_SESSION['user_id']]);
+        return new HTMLRenderer('component/profile',['user' => $user, 'posts' => $posts,'loginUserId' => $_SESSION['user_id'], 'followNum' => $followNum, 'followerNum' => $followerNum]);
     })->setMiddleware(['auth']),
     'follow' => Route::create('follow', function (): HTTPRenderer {
         $userDao = DAOFactory::getUserDAO();
@@ -541,5 +541,20 @@ return [
             $followerUsers = $userDao->getFollowerListById($id);
         }
         return new HTMLRenderer('component/follow',['followUsers' => $followUsers,'followerUsers' => $followerUsers]);
+    })->setMiddleware(['auth']),
+    'post' => Route::create('post', function (): HTTPRenderer {
+        $userDao = DAOFactory::getUserDAO();
+        $postDao = DAOFactory::getPostDAO();
+        $user=null;
+        $posts=null;
+        if(isset($_GET['user_id'])){
+            $id = ValidationHelper::integer($_GET['user_id']);
+            $user = $userDao->getById($id);
+            $posts = $postDao->getById($id);
+        }
+
+
+
+        return new HTMLRenderer('component/post',['user' => $user, 'posts' => $posts,'loginUserId' => $_SESSION['user_id']]);
     })->setMiddleware(['auth']),
 ];

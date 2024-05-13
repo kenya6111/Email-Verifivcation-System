@@ -80,12 +80,15 @@ $dummyposts=[
     </div>
     <div class="col-8  d-flex flex-column justify-content-center border ">
         <!-- トレンドorフォロワー-->
+        
         <div class="btn-group border-bottom" role="group" aria-label="Basic example">
-            <button type="button" class="btn me-5" id="trend-btn">Trend</button>
-            <button type="button" class="btn ms-5" id="follow-btn">Follower</button>
+            <a href="/homepage">
+                <span class="material-symbols-outlined fs-2">arrow_back</span>
+            </a>
+            <div class="pt-1">Posting</div>
         </div>
         <!-- ポストフィールド -->
-        <div class="card">
+        <!-- <div class="card">
             <div class="card-body">
                 <form action="form/post" id="send-form" method="post" enctype="multipart/form-data">
                     <input type="hidden" name="csrf_token" value="<?= Helpers\CrossSiteForgeryProtection::getToken() ?>">
@@ -99,37 +102,37 @@ $dummyposts=[
                     <button type="submit" class="btn btn-primary float-end">ポストする</button>
                 </form>
             </div>
-        </div>
+        </div> -->
 
         <div class="tab-content">
             <div class="tab-pane fade show active" id="trend-content">
                 <!-- Dynamic content for Trend should be loaded here -->
                 <ul id ="list-group" class="list-group list-unstyled">
                     <?php foreach ($posts as $post): ?>
-                        <li class=" post border-top pt-2 pb-2" data-url="/post?post_id=<?= $post['post_id'];?>">
-                                <div class="d-flex">
-                                    <a href="/profile?user_id=<?= $post['id'];?>">
-                                        <span class="material-symbols-outlined ms-2 fs-1">account_circle</span>
-                                    </a>
-                                    <h5 class="ms-3 pt-2"><?=htmlspecialchars($post['username']) ?></h5>
-                                </div>
-                                <div class="mx-5">
-                                    <p> <?= htmlspecialchars($post['message']) ?> </p>
-                                </div>
-                                <div class="mx-5 mb-3">
-                                    <img src=" <?= "/uploads/".$post['image'] ?>" class="img-fluid" alt="">
-                                </div>
-                                <div>
-                                    <div class="row justify-content-end">
-                                        <div class="col-3">
-                                            <span class="material-symbols-outlined">favorite</span>
-                                        </div>
-                                        <div class="col-3">
-                                            <span class="material-symbols-outlined">chat_bubble</span>
-                                        </div>
+                        <li class=" post border-top pt-2 pb-2">
+                            <div class="d-flex">
+                                <a href="/profile?user_id=<?= $post['id'];?>">
+                                    <span class="material-symbols-outlined ms-2 fs-1">account_circle</span>
+                                </a>
+                                <h5 class="ms-3 pt-2"><?=htmlspecialchars($post['username']) ?></h5>
+                            </div>
+                            <div class="mx-5">
+                                <p> <?= htmlspecialchars($post['message']) ?> </p>
+                            </div>
+                            <div class="mx-5 mb-3">
+                                <img src=" <?= "/uploads/".$post['image'] ?>" class="img-fluid" alt="">
+                            </div>
+                            <div>
+                                <div class="row justify-content-end">
+                                    <div class="col-3">
+                                        <span class="material-symbols-outlined">favorite</span>
+                                    </div>
+                                    <div class="col-3">
+                                        <span class="material-symbols-outlined">chat_bubble</span>
                                     </div>
                                 </div>
-                            </li>
+                            </div>
+                        </li>
                     <?php endforeach; ?>
                 </ul>
             </div>
@@ -143,4 +146,4 @@ $dummyposts=[
     </div>
 </div>
 
-<script src="/js/home.js"></script>
+<!-- <script src="/js/home.js"></script> -->
