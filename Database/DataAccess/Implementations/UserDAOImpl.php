@@ -91,6 +91,40 @@ class UserDAOImpl implements UserDAO
 
         return $result;
     }
+    public function insertLikeRaw(int $post_id,int $user_id): ?bool{
+        $mysqli = DatabaseManager::getMysqliConnection();
+
+        $query = "INSERT INTO likes (post_id, user_id) VALUES (?, ?)";
+        $result = $mysqli->prepareAndExecute(
+            $query,
+            'ii',
+            [
+                $post_id,
+                $user_id
+            ]
+        );
+
+        if (!$result) return false;
+
+        return true;
+    }
+    public function deleteLikeRaw(int $post_id,int $user_id): ?bool{
+        $mysqli = DatabaseManager::getMysqliConnection();
+
+        $query = "DELETE FROM likes WHERE post_id = ? AND  user_id = ?";
+        $result = $mysqli->prepareAndExecute(
+            $query,
+            'ii',
+            [
+                $post_id,
+                $user_id
+            ]
+        );
+
+        if (!$result) return false;
+
+        return true;
+    }
 
     public function update(User $user, string $password, ?string $emailVerifiedAt): bool
     {
@@ -221,5 +255,21 @@ class UserDAOImpl implements UserDAO
         if($userRaws === null) return 0;
 
         return count($userRaws);
+    }
+
+    public function insertLike(int $post_id,int $user_id): ?bool
+    {
+        $userRaws = $this->insertLikeRaw($post_id,$user_id);
+        // if($userRaws === null) return 0;
+
+        return true;
+    } 
+    
+    public function deleteLike(int $post_id,int $user_id): ?bool
+    {
+        $userRaws = $this->deleteLikeRaw($post_id,$user_id);
+        // if($userRaws === null) return 0;
+
+        return true;
     }
 }

@@ -9,7 +9,7 @@ use Models\Post;
 
 class PostDAOImpl implements PostDAO
 {
-    public function create(string $text, string $file_path,string $file_name,string $mime_type,string $size,string $shared_url): bool
+    public function create(string $text, ?string $file_path,string $file_name,string $mime_type,string $size,?string $shared_url,?int $reply_to_id): bool
     {
         //if ($user->getId() !== null) throw new \Exception('Cannot create a user with an existing ID. id: ' . $user->getId());
 
@@ -21,7 +21,7 @@ class PostDAOImpl implements PostDAO
             $query,
             'isssssi',
             [
-                null,
+                $reply_to_id,
                 $text,
                 $file_path,
                 null,
@@ -44,6 +44,18 @@ class PostDAOImpl implements PostDAO
         $query = "SELECT * FROM posts WHERE user_id = ?";
 
         $result = $mysqli->prepareAndFetchAll($query, 'i', [$id]) ?? null;
+
+        if ($result === null) return null;
+
+        return $result;
+    }
+
+    public function getRawByPostId(int $id): ?array{
+        $mysqli = DatabaseManager::getMysqliConnection();
+
+        $query = "SELECT * FROM posts WHERE post_id = ?";
+
+        $result = $mysqli->prepareAndFetchAll($query, 'i', [$id])[0] ?? null;
 
         if ($result === null) return null;
 
@@ -78,6 +90,16 @@ class PostDAOImpl implements PostDAO
                 ORDER BY
                 like_count DESC
                 LIMIT 20;";
+
+        $result = $mysqli->query($query)->fetch_all(MYSQLI_ASSOC) ?? null;
+
+        if ($result === null) return null;
+        return $result;
+    }
+    public function getAllRaw(): ?array{
+        $mysqli = DatabaseManager::getMysqliConnection();
+
+        $query = "SELECT * FROM posts";
 
         $result = $mysqli->query($query)->fetch_all(MYSQLI_ASSOC) ?? null;
 
@@ -185,4 +207,20 @@ class PostDAOImpl implements PostDAO
     // {
     //     return $this->getRawById($id)['password']??null;
     // }
+
+    public function getByPostId(int $id): ?array
+    {
+        $postsRaw = $this->getRawByPostId($id);
+        if($postsRaw === null) return null;
+
+        return $postsRaw;
+    }
+
+    public function getAllPosts(): ?array
+    {
+        $postsRaws = $this->getAllRaw();
+        if($postsRaws === null) return null;
+
+        return $postsRaws;
+    }
 }

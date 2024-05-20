@@ -76,53 +76,83 @@ $posts=[
     ],
 ]
 ?>
-<div class="row d-flex w-100">
+<div class="row d-flex w-100 vh-100">
     <div class="col-2">
     </div>
-    <div class="col-8  d-flex flex-column justify-content-center border ">
+    <div class="col-4  d-flex flex-column justify-content-start border ">
         <!-- トレンドorフォロワー-->
-        <div class="btn-group border-bottom" role="group" aria-label="Basic example">
-            <span class="material-symbols-outlined fs-2">arrow_back</span>
+        <div class="btn-group border-bottom " role="group" aria-label="Basic example">
+            <a href="/homepage">
+                <span class="material-symbols-outlined fs-2">arrow_back</span>
+            </a>
             <div class="pt-1 fs-2">メッセージ</div>
         </div>
         
         <div class="tab-content">
             <div class="tab-pane fade show active" id="post-content">
                 <!-- Dynamic content for Trend should be loaded here -->
-                <ul id ="list-group" class="list-group list-unstyled">
-                    <?php foreach ($posts as $post): ?>
-                            <li class=" post border-top pt-2 pb-2">
+                <ul id ="messageList" class="list-group list-unstyled">
+                    <?php foreach ($groupedMessages as $groupedMessage): ?>
+                            <li class="list-group-item post border-top pt-2 pb-2" id="message-<?= htmlspecialchars($groupedMessage['username']) ?>">
                                 <div class="d-flex">
                                     <span class="material-symbols-outlined fs-1">account_circle</span>
-                                    <p class="mt-2"> <?= htmlspecialchars($post['user']) ?></p>
+                                    <p class="mt-2"> <?= htmlspecialchars($groupedMessage['username']) ?></p>
                                 </div>
-                                <div class="mx-5">
-                                    <p> <?= htmlspecialchars($post['message']) ?> </p>
-                                </div>
-                                
                             </li>
                     <?php endforeach; ?>
                 </ul>
             </div>
-            <!-- <div class="tab-pane fade show active" id="reply-content" style="display: none;">
-                reply
-            </div>
-            <div class="tab-pane fade show active" id="media-content" style="display: none;">
-                media
-            </div>
-            <div class="tab-pane fade show active" id="like-content" style="display: none;">
-                like
-            </div> -->
         </div>
     </div>
-    <div class="col-2">
+    <div class="col-6 message-area d-flex flex-column vh-100">
+        <div id="default-message" class="d-flex flex-grow-1 justify-content-center align-items-center" >
+            <div class="text-center" style="display:none;">
+               <h1>メッセージを選択</h1>
+                <p>既存の会話から選択したり、新しい会話を開始したりできます。</h3>
+            </div>
+        </div>
+        <?php foreach ($groupedMessages as $groupedMessage): ?>
+            <!-- メッセージヘッダー -->
+
+            <div id="content-<?= htmlspecialchars($groupedMessage['username']) ?>" class="message-content" style="display:none;">
+                <?php foreach ($groupedMessage['messages'] as $message): ?>
+                    <div  class="flex-grow-1 overflow-auto p-3">
+                        <?php if ($message['send_user_id'] != $loginUserId):?>
+                            <div class="d-flex mb-3">
+                                <div class="bg-light rounded p-2">
+                                    <p class="mb-0"><?= htmlspecialchars($message['message']) ?></p>
+                                </div>
+                            </div>
+                        <?php else: ?>
+                            <div class="d-flex justify-content-end mb-3">
+                                <div class="bg-primary text-white rounded p-2">
+                                    <p class="mb-0"><?= htmlspecialchars($message['message']) ?></p>
+                                </div>
+                                <span class="material-symbols-outlined fs-1">account_circle</span>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php endforeach; ?>
+        <div class="border-top p-3 d-flex">
+            <input type="text" class="form-control mr-2" placeholder="新しいメッセージを作成">
+            <button class="btn btn-primary">送信</button>
+        </div>
     </div>
 </div>
 
-<script src="/js/profile.js"></script>
+<script src="/js/message.js"></script>
+
+<!-- message画面を表示
+→各ユーザとのメッセージボックスリストの表示（各相手とのメッセージもすべて右側のエリアにレンダリングして、各メッセージボックスを押すとdisplayがblock担って表示される感じにするか）
+→各ボックスを押すとメッセージする画面を表示
+→各ボックスを押すたびにそのユーザとのメッセージログを表示する -->
+
+<!-- 各リストボックスでは「ユーザの名前」と「新着のメッセージ」を部分的に表示する -->
+<!-- 
 <style>
-        .post:hover {
-            background-color: #f8f9fa; /* 薄いグレーの背景色 */
-            cursor: pointer; /* オプショナル: ホバー時にカーソルをポインターに変更 */
-        }
-</style>
+.message-area{
+    height:100%;
+}
+</style> -->

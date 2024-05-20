@@ -9,6 +9,15 @@
                 <li class="nav-item">
                     <a class="nav-link" href="/random/part">Random Part</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/homepage">home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/notice">notice</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/message">message</a>
+                </li>
                 <?php if ($user): ?>
                 <li class="nav-item">
                     <a class="nav-link" href="/update/part">Update Part</a>

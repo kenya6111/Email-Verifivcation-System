@@ -72,7 +72,7 @@ $dummyposts=[
 <div class="row d-flex w-100">
     <div class="col-2">
         <div>
-        <a href="/profile?user_id=<?= htmlspecialchars($loginUserId);?>">
+            <a href="/profile?user_id=<?= htmlspecialchars($loginUserId);?>">
                 <span class="material-symbols-outlined ms-2 fs-1">account_circle</span>
             </a>
             <h5 class="ms-3 pt-2"><?=htmlspecialchars($post['username']) ?></h5>    
@@ -88,7 +88,7 @@ $dummyposts=[
         <div class="card">
             <div class="card-body">
                 <form action="form/post" id="send-form" method="post" enctype="multipart/form-data">
-                    <input type="hidden" name="csrf_token" value="<?= Helpers\CrossSiteForgeryProtection::getToken() ?>">
+                    <input id="csrf_token" type="hidden" name="csrf_token" value="<?= Helpers\CrossSiteForgeryProtection::getToken() ?>">
                     <div class="mb-3">
                         <textarea class="form-control" name="text" placeholder="write something here " rows="3"></textarea>
                     </div>
@@ -106,7 +106,10 @@ $dummyposts=[
                 <!-- Dynamic content for Trend should be loaded here -->
                 <ul id ="list-group" class="list-group list-unstyled">
                     <?php foreach ($posts as $post): ?>
-                        <li class=" post border-top pt-2 pb-2" data-url="/post?post_id=<?= $post['post_id'];?>">
+                        <input id="post_id" type="hidden" name="post_id" value="<?= $post['post_id']?>">
+                        <input id="user_id" type="hidden" name="user_id" value="<?= $post['user_id']?>">
+                        <?php $modalId = 'exampleModal' . $post['id']; ?>
+                        <li class=" post border-top pt-2 pb-2 clickable-post" data-url="/post?post_id=<?= $post['post_id'];?>">
                                 <div class="d-flex">
                                     <a href="/profile?user_id=<?= $post['id'];?>">
                                         <span class="material-symbols-outlined ms-2 fs-1">account_circle</span>
@@ -122,17 +125,52 @@ $dummyposts=[
                                 <div>
                                     <div class="row justify-content-end">
                                         <div class="col-3">
-                                            <span class="material-symbols-outlined">favorite</span>
+                                            <div id="like-button-after" class="d-none">💗</div>
+                                            <span id="like-button-before" class="material-symbols-outlined">favorite</span><?= $post['like_count']?>
                                         </div>
-                                        <div class="col-3">
-                                            <span class="material-symbols-outlined">chat_bubble</span>
+                                        <div class="col-3 reply-btn" >
+                                            <!-- <span class="material-symbols-outlined">chat_bubble</span> -->
+                                            <button type="button" class="btn btn-primary btn-sm rounded-pill" data-bs-toggle="modal" data-bs-target="#<?= $modalId ?>">
+                                              返信
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
+                                <!-- モーダルの本体 -->
+                                <div class="modal fade" id="<?= $modalId ?>" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                  <div class="modal-dialog">
+                                    <div class="modal-content">
+                                      <div class="modal-header">
+                                        <h5 class="modal-title" id="exampleModalLabel">ポップアップ</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                      </div>
+                                      <div class="card">
+                                        <div class="card-body">
+                                            <form action="form/post?post_id=<?= $post['post_id']?>&user_id=<?= $post['user_id']?>" id="send-form" method="post" enctype="multipart/form-data">
+                                                <input id="csrf_token_popup" type="hidden" name="csrf_token" value="<?= Helpers\CrossSiteForgeryProtection::getToken() ?>">
+                                                <div class="mb-3">
+                                                    <textarea class="form-control" name="text" placeholder="write something here " rows="3"></textarea>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="file-upload" class="form-label"><i class="fas fa-camera"></i> メディアをアップロード</label>
+                                                    <input type="file" class="form-control" id="file-upload" name="file-upload">
+                                                </div>
+                                                <button type="submit" class="btn btn-primary float-end post-btn-popup">ポストする</button>
+                                            </form>
+                                        </div>
+                                      </div>
+                                      <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary close-btn-popup" data-bs-dismiss="modal">閉じる</button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
                             </li>
-                    <?php endforeach; ?>
-                </ul>
-            </div>
+                            <?php endforeach; ?>
+                        </ul>
+                    </div>
+                    
+            
             <div class="tab-pane fade show active" id="follower-content" style="display: none;">
                 <!-- Dynamic content for Followers should be loaded here -->
                 follower
@@ -144,3 +182,5 @@ $dummyposts=[
 </div>
 
 <script src="/js/home.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">

@@ -1,6 +1,6 @@
 <?php
 
-$dummyposts=[
+$posts=[
     [
         "id" => 1,
         "user"=> "tnk@engineer",
@@ -13,59 +13,7 @@ $dummyposts=[
             ]
         ],
         "image"=> "https://example.com/path/to/image.jpg"
-    ],
-    [
-        "id" => 2,
-        "user"=> "有吉弘行",
-        "content"=> "配信遅れて申し訳ございません.今日は山根です。重ねて申し訳ございません",
-        "likes"=> 23,
-        "comments"=> [
-            [
-                "user"=> "mng_nq",
-                "comment"=> "おめでとう！次も頑張って！"
-            ]
-        ],
-        "image"=> "https://example.com/path/to/image.jpg"
-    ],
-    [
-        "id" => 3,
-        "user"=> "ゆっちゃん@java勉強中",
-        "content"=> "今日は素晴らしい一日でした！最近のプロジェクトが無事に完了し、チーム全体でお祝いです。次のチャレンジに向けて、これからも頑張ります。",
-        "likes"=> 23,
-        "comments"=> [
-            [
-                "user"=> "mng_nq",
-                "comment"=> "おめでとう！次も頑張って！"
-            ]
-        ],
-        "image"=> "https://example.com/path/to/image.jpg"
-    ],
-    [
-        "id" => 4,
-        "user"=> "ryooootasaaaaam",
-        "content"=> "基本情報技術者試験、見事合格〜！年末年始？そんなの関係ねぇ！！年末年始返上が実を結びました",
-        "likes"=> 23,
-        "comments"=> [
-            [
-                "user"=> "mng_nq",
-                "comment"=> "おめでとう！次も頑張って！"
-            ]
-        ],
-        "image"=> "https://example.com/path/to/image.jpg"
-    ],
-    [
-        "id" => 5,
-        "user"=> "あさか🐰",
-        "content"=> "人を笑わせることを志してきました。たくさんの人が自分の事で笑えなくなり、ただただ困惑し、悔しく悲しいです。。。。世間に真実が伝わり、一日も早く、お笑いがしたいです。",
-        "likes"=> 23,
-        "comments"=> [
-            [
-                "user"=> "mng_nq",
-                "comment"=> "おめでとう！次も頑張って！"
-            ]
-        ],
-        "image"=> "https://example.com/path/to/image.jpg"
-    ],
+    ]
 ]
 
 ?>
@@ -106,9 +54,7 @@ $dummyposts=[
 
         <div class="tab-content">
             <div class="tab-pane fade show active" id="trend-content">
-                <!-- Dynamic content for Trend should be loaded here -->
                 <ul id ="list-group" class="list-group list-unstyled">
-                    <?php foreach ($posts as $post): ?>
                         <li class=" post border-top pt-2 pb-2">
                             <div class="d-flex">
                                 <a href="/profile?user_id=<?= $post['id'];?>">
@@ -132,8 +78,94 @@ $dummyposts=[
                                     </div>
                                 </div>
                             </div>
+                            <div class="mx-5 mb-3">
+                                <?= $post['created_at'] ?>
+                            </div>
+                            <div>
+                                <form action="form/post" id="send-form" method="post" enctype="multipart/form-data">
+                                    <input id="csrf_token" type="hidden" name="csrf_token" value="<?= Helpers\CrossSiteForgeryProtection::getToken() ?>">
+                                    <div class="mb-3">
+                                        <textarea class="form-control" name="text" placeholder="write something here " rows="3"></textarea>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="file-upload" class="form-label"><i class="fas fa-camera"></i> メディアをアップロード</label>
+                                        <input type="file" class="form-control" id="file-upload" name="file-upload">
+                                    </div>
+                                    <button type="submit" class="btn btn-primary float-end">返信</button>
+                                </form>
+                            </div>
                         </li>
-                    <?php endforeach; ?>
+                        
+                        <?php function renderPosts($replys) { ?>
+                            <?php foreach ($replys as $reply): ?>
+                                <li class="post border-top pt-2 pb-2">
+                                    <div class="d-flex">
+                                        <a href="/profile?user_id=<?= $reply['id']; ?>">
+                                            <span class="material-symbols-outlined ms-2 fs-1">account_circle</span>
+                                        </a>
+                                        <h5 class="ms-3 pt-2"><?= htmlspecialchars($reply['user']) ?></h5>
+                                    </div>
+                                    <div class="mx-5">
+                                        <p><?= htmlspecialchars($reply['message']) ?></p>
+                                    </div>
+                                    <?php if (!empty($reply['image'])): ?>
+                                        <div class="mx-5 mb-3">
+                                            <img src=" <?= "/uploads/".$reply['image'] ?>" class="img-fluid" alt="">
+                                        </div>
+                                    <?php endif; ?>
+                                    <div class="row justify-content-end">
+                                        <div class="col-3">
+                                            <span class="material-symbols-outlined">favorite</span> <?= $reply['likes'] ?>
+                                        </div>
+                                        <div class="col-3">
+                                            <button type="button" class="btn btn-primary btn-sm rounded-pill" data-bs-toggle="modal" data-bs-target="#replyModal<?= $reply['id'] ?>">
+                                                返信
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="mx-5 mb-3">
+                                        <?= $reply['created_at'] ?>
+                                    </div>
+                                    
+                                    <!-- モーダルの本体 -->
+                                    <div class="modal fade" id="replyModal<?= $reply['id'] ?>" tabindex="-1" aria-labelledby="replyModalLabel<?= $reply['id'] ?>" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="replyModalLabel<?= $reply['id'] ?>">返信ポップアップ</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <form action="form/post?reply_to_id=<?= $reply['id'] ?>" method="post" enctype="multipart/form-data">
+                                                        <input id="csrf_token_popup" type="hidden" name="csrf_token" value="<?= Helpers\CrossSiteForgeryProtection::getToken() ?>">
+                                                        <div class="mb-3">
+                                                            <textarea class="form-control" name="text" placeholder="write something here" rows="3"></textarea>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label for="file-upload" class="form-label"><i class="fas fa-camera"></i> メディアをアップロード</label>
+                                                            <input type="file" class="form-control" id="file-upload" name="file-upload">
+                                                        </div>
+                                                        <button type="submit" class="btn btn-primary float-end">ポストする</button>
+                                                    </form>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- 子ポストを表示 -->
+                                    <?php if (!empty($reply['children'])): ?>
+                                        <ul class="list-group list-unstyled ms-3">
+                                            <?= renderPosts($reply['children']) ?>
+                                        </ul>
+                                    <?php endif; ?>
+                                </li>
+                            <?php endforeach; ?>
+                        <?php } ?>
+
+                        <?php renderPosts($replys); ?>
                 </ul>
             </div>
             <div class="tab-pane fade show active" id="follower-content" style="display: none;">

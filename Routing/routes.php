@@ -388,9 +388,19 @@ return [
         return new HTMLRenderer('page/home',['posts'=>$posts,'loginUserId' => $_SESSION['user_id']]);
     })->setMiddleware(['auth']),
     'form/post' => Route::create('form/post', function (): HTTPRenderer {
+
         try {
             // リクエストメソッドがPOSTかどうかをチェックします
             if ($_SERVER['REQUEST_METHOD'] !== 'POST') throw new Exception('Invalid request method!');
+
+            $postID=null;
+            if($_GET['post_id']!==null){
+                $postID=$_GET['post_id'];
+                $userID=$_GET['user_id'];
+
+                $noticeDao = DAOFactory::getNoticeDAO();
+                $result = $noticeDao->create($userID,$_SESSION['user_id'],"reply",$postID);
+            };
 
             $required_fields = [
                 'text' => ValueType::STRING,
@@ -403,6 +413,9 @@ return [
 
             // シンプルな検証
             //$validatedData = ValidationHelper::validateFields($required_fields, $_POST);
+            $imagePathFromUploadDir = null; // デフォルトでは画像のパスを null に設定
+        if (isset($_FILES['file-upload']) && $_FILES['file-upload']['error'] !== UPLOAD_ERR_NO_FILE) {
+          
             $tmpPath = $_FILES['file-upload']['tmp_name'];
             $finfo = new finfo(FILEINFO_MIME_TYPE);
             $mime = $finfo->file($tmpPath);
@@ -442,10 +455,13 @@ return [
             $shared_url = '/' . $extension . '/' . $hash_for_shared_url;
             // $delete_url = '/' .  'delete' . '/' . $hash_for_delete_url;
             $imagePathFromUploadDir = $subdirectory . '/'.$filename;
+        }
+
+
 
             $message = $validatedData['text'];
             
-            $result = $postDao->create($message,$imagePathFromUploadDir,$_FILES['file-upload']['name'],$_FILES['file-upload']['type'],$_FILES['file-upload']['size'],$shared_url);
+            $result = $postDao->create($message,$imagePathFromUploadDir,$_FILES['file-upload']['name'],$_FILES['file-upload']['type'],$_FILES['file-upload']['size'],$shared_url,$postID);
 
             $posts = $postDao->getPostsOrderedByLikesDesc();
             
@@ -482,12 +498,13 @@ return [
     })->setMiddleware(['auth']),
     'follow' => Route::create('follow', function (): HTTPRenderer {
         $userDao = DAOFactory::getUserDAO();
+        $noticeDao = DAOFactory::getNoticeDAO();
         $user = null;
         if(isset($_POST['user_id'])){
             $id = ValidationHelper::integer($_POST['user_id']);
             $result = $userDao->insertFollowRecord($id,$_SESSION['user_id']);
+            $result = $noticeDao->create($id,$_SESSION['user_id'],"follower",$id);
         }
-
         // return new HTMLRenderer('component/profile',['status' => $result]);
         // return new RedirectRenderer('profile');  
         return new JSONRenderer(['status' => $result]);
@@ -506,6 +523,9 @@ return [
     })->setMiddleware(['auth']),
     'notice' => Route::create('notice', function (): HTTPRenderer {
         // $user = Authenticate::getAuthenticatedUser();
+
+        $noticeDao = DAOFactory::getNoticeDAO();
+        $notices = $noticeDao ->getByUserId($_SESSION['user_id']);
         // $part = null;
         // $partDao = DAOFactory::getComputerPartDAO();
         // if(isset($_GET['id'])){
@@ -516,21 +536,40 @@ return [
         //         return new RedirectRenderer('register');
         //     }
         // }
-        return new HTMLRenderer('component/notifications');
+        return new HTMLRenderer('component/notifications',['notices' => $notices]);
     })->setMiddleware(['auth']),
     'message' => Route::create('message', function (): HTTPRenderer {
-        // $user = Authenticate::getAuthenticatedUser();
-        // $part = null;
-        // $partDao = DAOFactory::getComputerPartDAO();
-        // if(isset($_GET['id'])){
-        //     $id = ValidationHelper::integer($_GET['id']);
-        //     $part = $partDao->getById($id);
-        //     if($user->getId() !== $part->getSubmittedById()){
-        //         FlashData::setFlashData('error', 'Only the author can edit this computer part.');
-        //         return new RedirectRenderer('register');
-        //     }
-        // }
-        return new HTMLRenderer('component/message');
+        $messageDao = DAOFactory::getMessageDAO();
+        $userDao = DAOFactory::getUserDAO();
+        $messages = $messageDao ->getByUserId($_SESSION['user_id']);
+        $loginUserId=$_SESSION['user_id'];
+
+        $groupedMessages = [];
+
+        foreach ($messages as $message) {
+           // 相手ユーザーのIDと名前を特定
+            if ($message['send_user_id'] == $_SESSION['user_id']) {
+                $otherUserId = $message['receive_user_id'];
+                $otherUsername = $userDao->getById($otherUserId)->getUsername();
+            } else {
+                $otherUserId = $message['send_user_id'];
+                $otherUsername = $message['username'];
+            }
+
+            // グループ化
+            if (!isset($groupedMessages[$otherUserId])) {
+                $groupedMessages[$otherUserId] = [
+                    'username' => $otherUsername,
+                    'messages' => []
+                ];
+            }
+        
+            // メッセージを追加
+            $groupedMessages[$otherUserId]['messages'][] = $message;
+        }
+
+
+        return new HTMLRenderer('component/message',['groupedMessages' => $groupedMessages,'loginUserId'=>$loginUserId]);
     })->setMiddleware(['auth']),
     'followList' => Route::create('followList', function (): HTTPRenderer {
         //  $user = Authenticate::getAuthenticatedUser();
@@ -543,18 +582,71 @@ return [
         return new HTMLRenderer('component/follow',['followUsers' => $followUsers,'followerUsers' => $followerUsers]);
     })->setMiddleware(['auth']),
     'post' => Route::create('post', function (): HTTPRenderer {
-        $userDao = DAOFactory::getUserDAO();
         $postDao = DAOFactory::getPostDAO();
-        $user=null;
         $posts=null;
-        if(isset($_GET['user_id'])){
-            $id = ValidationHelper::integer($_GET['user_id']);
-            $user = $userDao->getById($id);
-            $posts = $postDao->getById($id);
+        if(isset($_GET['post_id'])){
+            $id = ValidationHelper::integer($_GET['post_id']);
+            $post = $postDao->getByPostId($id);
         }
 
+        $allPosts = $postDao->getAllPosts($id);
+
+        $trees = buildTree($allPosts);
+
+        $curentTree = selectTree($trees, $_GET['post_id']);
 
 
-        return new HTMLRenderer('component/post',['user' => $user, 'posts' => $posts,'loginUserId' => $_SESSION['user_id']]);
+
+        return new HTMLRenderer('component/post',['post' => $post,'loginUserId' => $_SESSION['user_id'],'replys' => $curentTree[0]['children']]);
+    })->setMiddleware(['auth']),
+    'addlike' => Route::create('addlike', function (): HTTPRenderer {
+
+        $userDao = DAOFactory::getUserDAO();
+        $noticeDao = DAOFactory::getNoticeDAO();
+        if(isset($_POST['post_id'])){
+            $post_id = ValidationHelper::integer($_POST['post_id']);
+            $user_id = ValidationHelper::integer($_POST['user_id']);
+            $result = $userDao->insertLike($post_id,$_SESSION['user_id']);
+            $result = $noticeDao->create($user_id,$_SESSION['user_id'],"like",$post_id);
+        }
+
+        return new JSONRenderer(['status' => 'success', 'message' => 'like is success!']);
+    })->setMiddleware(['auth']),
+    'reducelike' => Route::create('reducelike', function (): HTTPRenderer {
+
+        $userDao = DAOFactory::getUserDAO();
+        if(isset($_POST['post_id'])){
+            $post_id = ValidationHelper::integer($_POST['post_id']);
+            $result = $userDao->deleteLike($post_id,$_SESSION['user_id']);
+        }
+
+        return new JSONRenderer(['status' => 'success', 'message' => 'like is success!']);
     })->setMiddleware(['auth']),
 ];
+
+
+function buildTree(array $elements, $parentId = null) {
+    $branch = [];
+
+    foreach ($elements as &$element) {
+        if ($element['reply_to_id'] == $parentId) {
+            $children = buildTree($elements, $element['post_id']);
+            if ($children) {
+                $element['children'] = $children;
+            }
+            $branch[] = $element;
+            unset($element);
+        }
+    }
+    return $branch;
+}
+function selectTree(array $trees, int $postId) {
+    $branch = [];
+
+    foreach ($trees as &$tree) {
+        if ($tree['post_id'] == $postId) {
+            $branch[] = $tree;
+        }
+    }
+    return $branch;
+}

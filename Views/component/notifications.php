@@ -1,6 +1,6 @@
 <?php 
 
-$posts=[
+$dummyposts=[
     [
         "id" => 1,
         "user"=> "tnk@engineer",
@@ -79,7 +79,9 @@ $posts=[
     <div class="col-8  d-flex flex-column justify-content-center border ">
         <!-- トレンドorフォロワー-->
         <div class="btn-group border-bottom" role="group" aria-label="Basic example">
-            <span class="material-symbols-outlined fs-2">arrow_back</span>
+            <a href="/homepage">
+                <span class="material-symbols-outlined fs-2">arrow_back</span>
+            </a>
             <div class="pt-1 fs-2">通知</div>
         </div>
         
@@ -87,48 +89,48 @@ $posts=[
             <div class="tab-pane fade show active" id="post-content">
                 <!-- Dynamic content for Trend should be loaded here -->
                 <ul id ="list-group" class="list-group list-unstyled">
-                    <?php foreach ($posts as $post): ?>
-                        <?php if ($post['notificationType'] == 'follow'):?>
-                            <li class=" post border-top pt-2 pb-2">
+                    <?php foreach ($notices as $notice): ?>
+                        <?php if ($notice['notification_type'] == 'follower'):?>
+                            <li class=" notice border-top pt-2 pb-2" data-url="/profile?user_id=<?= $notice['id'];?>">
                                 <div class="d-flex">
                                     <span class="material-symbols-outlined fs-1">person</span>
                                     <span class="material-symbols-outlined fs-1">account_circle</span>
                                 </div>
                                 <div class="mx-5">
-                                    <p> <?= htmlspecialchars($post['user']) ?>さんにフォローされました。 </p>
+                                    <p> <?= htmlspecialchars($notice['username']) ?>さんにフォローされました。 </p>
                                 </div>
                             </li>
-                        <?php elseif($post['notificationType'] == 'like'): ?>
-                            <li class=" post border-top pt-2 pb-2">
+                        <?php elseif($notice['notification_type'] == 'like'): ?>
+                            <li class=" notice border-top pt-2 pb-2">
                                 <div class="d-flex">
                                     <span class="material-symbols-outlined fs-1">favorite</span>
                                     <span class="material-symbols-outlined fs-1">account_circle</span>
                                 </div>
                                 <div class="mx-5">
-                                    <p> <?= htmlspecialchars($post['user']) ?>さんがあなたの投稿にいいねしました。 </p>
+                                    <p> <?= htmlspecialchars($notice['username']) ?>さんがあなたの投稿にいいねしました。 </p>
                                 </div>
                                 <div class="mx-5 text-black-50">
-                                    <p> <?= htmlspecialchars($post['content']) ?> </p>
+                                    <p> <?= htmlspecialchars($notice['content']) ?> </p>
                                 </div>
                             </li>
-                        <?php elseif($post['notificationType'] == 'message'): ?>
-                            <li class=" post border-top pt-2 pb-2">
+                        <?php elseif($notice['notification_type'] == 'message'): ?>
+                            <li class=" notice border-top pt-2 pb-2">
                                 <div class="d-flex">
                                 <span class="material-symbols-outlined fs-1">mail</span>
                                     <span class="material-symbols-outlined fs-1">account_circle</span>
                                 </div>
                                 <div class="mx-5">
-                                    <p> <?= htmlspecialchars($post['user']) ?>さんからメッセージが届きました。 </p>
+                                    <p> <?= htmlspecialchars($notice['username']) ?>さんからメッセージが届きました。 </p>
                                 </div>
                             </li>
                         <?php else: ?>
-                            <li class=" post border-top pt-2 pb-2">
+                            <li class=" notice border-top pt-2 pb-2">
                                 <div class="d-flex">
                                     <span class="material-symbols-outlined fs-1">chat_bubble</span>
                                     <span class="material-symbols-outlined fs-1">account_circle</span>
                                 </div>
                                 <div class="mx-5">
-                                    <p> <?= htmlspecialchars($post['user']) ?>さんがあなたの投稿に返信しました。 </p>
+                                    <p> <?= htmlspecialchars($notice['username']) ?>さんがあなたの投稿に返信しました。 </p>
                                 </div>
                             </li>
                         <?php endif; ?>
@@ -151,4 +153,4 @@ $posts=[
     </div>
 </div>
 
-<script src="/js/profile.js"></script>
+<script src="/js/notice.js"></script>
