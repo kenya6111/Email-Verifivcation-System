@@ -80,9 +80,9 @@ $dummyposts=[
     </div>
     <div class="col-8  d-flex flex-column justify-content-center border ">
         <!-- トレンドorフォロワー-->
-        <div class="btn-group border-bottom" role="group" aria-label="Basic example">
-            <button type="button" class="btn me-5" id="trend-btn">Trend</button>
-            <button type="button" class="btn ms-5" id="follow-btn">Follower</button>
+        <div class="d-flex border-bottom w-100" role="group" aria-label="Basic example">
+            <button type="button" class="tf-btn btn flex-fill" id="trend-btn">Trend</button>
+            <button type="button" class="tf-btn btn flex-fill" id="follow-btn">Follower</button>
         </div>
         <!-- ポストフィールド -->
         <div class="card">
@@ -180,7 +180,11 @@ $dummyposts=[
     <div class="col-2">
     </div>
 </div>
-
+<style>
+.tf-btn:hover{
+    background-color: rgba(249,249,249,1);
+}
+</style>
 <script src="/js/home.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">

@@ -87,7 +87,7 @@ $dummyposts=[
             <input type="hidden" id="csrf_token" name="csrf_token" value="<?= Helpers\CrossSiteForgeryProtection::getToken(); ?>">
             <?php if ($user->getId() == $loginUserId):?>
                 <div class="ms-auto">
-                    <button id="edit-button" class="btn btn-primary ms-auto rounded-pill">編集する</button>
+                    <button id="edit-button" class="btn btn-primary ms-auto rounded-pill">プロフィールを編集する</button>
                 </div>
             <?php else: ?>
                 <div class="ms-auto">

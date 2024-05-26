@@ -7,9 +7,6 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav me-auto">
                 <li class="nav-item">
-                    <a class="nav-link" href="/random/part">Random Part</a>
-                </li>
-                <li class="nav-item">
                     <a class="nav-link" href="/homepage">home</a>
                 </li>
                 <li class="nav-item">
@@ -18,11 +15,6 @@
                 <li class="nav-item">
                     <a class="nav-link" href="/message">message</a>
                 </li>
-                <?php if ($user): ?>
-                <li class="nav-item">
-                    <a class="nav-link" href="/update/part">Update Part</a>
-                </li>
-                <?php endif; ?>
             </ul>
             <ul class="navbar-nav ms-auto">
                 <?php if ($user): ?>
