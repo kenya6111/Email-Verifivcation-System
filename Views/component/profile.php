@@ -77,21 +77,27 @@ $dummyposts=[
             <a href="/homepage">
                 <span class="material-symbols-outlined fs-2">arrow_back</span>
             </a>
-            <div class="pt-1"><?= htmlspecialchars($user->getUsername()); ?></div>
+            <div class="pt-1"><?= htmlspecialchars($user['username']); ?></div>
         </div>
-        <div>
-            <span class="material-symbols-outlined mt-4 fs-1">account_circle</span>
+        <div class="d-flex justify-content-start">
+            <div class="profile-container rounded-circle overflow-hidden">
+                <?php if ($user['profile_image'] != null ):?>
+                    <img src=" <?= "/uploads/".$user['profile_image'] ?>" class="img-fluid" alt="">
+                <?php else: ?>
+                    <span class="material-symbols-outlined mt-4 fs-1">account_circle</span>
+                <?php endif; ?>
+            </div>
         </div>
         <div class="d-flex align-items-center">
-            <h4 class="mb-0"><?= htmlspecialchars($user->getUsername()); ?></h4>
+            <h4 class="mb-0"><?= htmlspecialchars($user['username']); ?></h4>
             <input type="hidden" id="csrf_token" name="csrf_token" value="<?= Helpers\CrossSiteForgeryProtection::getToken(); ?>">
-            <?php if ($user->getId() == $loginUserId):?>
+            <?php if ($user['id'] == $loginUserId):?>
                 <div class="ms-auto">
-                    <button id="edit-button" class="btn btn-primary ms-auto rounded-pill">プロフィールを編集する</button>
+                    <button id="edit-button" class="btn btn-primary ms-auto rounded-pill" data-bs-toggle="modal" data-bs-target="#editProfileModal">プロフィールを編集する</button>
                 </div>
             <?php else: ?>
                 <div class="ms-auto">
-                    <input type="hidden" id="hidden-input" value="<?= htmlspecialchars($user->getId()); ?>">
+                    <input type="hidden" id="hidden-input" value="<?= htmlspecialchars($user['id']); ?>">
                     <button id="follow-btn" class="btn btn-primary ms-auto rounded-pill">フォローする</button>
                     <button id="un-follow-btn" class="btn btn-light btn-outline-primary ms-auto rounded-pill" style="display:none">フォロー中</button>
                 </div>
@@ -105,11 +111,11 @@ $dummyposts=[
             <div class="row fs-5">
                 <div class="col-2">
                     <?= htmlspecialchars($followNum);?>
-                    <a href="/followList?user_id=<?= htmlspecialchars($user->getId());?>" style="text-decoration:none; color: #000000;">follow</a>
+                    <a href="/followList?user_id=<?= htmlspecialchars($user['id']);?>" style="text-decoration:none; color: #000000;">follow</a>
                 </div>
                 <div class="col-2">
                     <?= htmlspecialchars($followerNum);?>
-                    <a href="/followList?user_id=<?= htmlspecialchars($user->getId());?>" style="text-decoration:none;  color: #000000;">follower</a>
+                    <a href="/followList?user_id=<?= htmlspecialchars($user['id']);?>" style="text-decoration:none;  color: #000000;">follower</a>
                 </div>
             </div>
         </div>
@@ -145,7 +151,7 @@ $dummyposts=[
                         <li class=" post border-top pt-2 pb-2">
                             <div class="d-flex">
                                 <span class="material-symbols-outlined ms-2 fs-1">account_circle</span>
-                                <p class="ms-3 pt-2"><?=htmlspecialchars($user->getUsername()) ?></p>
+                                <p class="ms-3 pt-2"><?=htmlspecialchars($user['username']) ?></p>
                             </div>
                             <div class="mx-5">
                                 <p> <?= htmlspecialchars($post->getMessage()) ?> </p>
@@ -177,9 +183,64 @@ $dummyposts=[
                 like
             </div>
         </div>
+        <!-- モーダルの本体 -->
+        <div class="modal fade"  id="editProfileModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                  <h5 class="modal-title" id="exampleModalLabel">ポップアップ</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <form action="form/profile?user_id=<?= $user['id']?>" id="send-form" method="post" enctype="multipart/form-data">
+                            <button type="submit" class="btn btn-primary float-end post-btn-popup">保存</button>
+                        <input id="csrf_token_popup" type="hidden" name="csrf_token" value="<?= Helpers\CrossSiteForgeryProtection::getToken() ?>">
+
+                        <div class="mb-3">
+                            <input type="text" class="form-control" id="name-upload" name="name-upload" placeholder="name">
+                        </div>
+                        <div class="mb-3">
+                            <textarea class="form-control" name="introduction-upload" placeholder="introduction" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="file-upload" class="form-label"><i class="fas fa-camera"></i> profile image</label>
+                            <input type="file" class="form-control" id="file-upload" name="file-upload">
+                        </div>
+                        <div class="mb-3">
+                            <input type="text" class="form-control" id="address-upload" name="address-upload" placeholder="address">
+                        </div>
+                        <div class="mb-3">
+                            <input type="text" class="form-control" id="hobby-upload" name="hobby-upload" placeholder="hobby">
+                        </div>
+                        <div class="mb-3">
+                            <input type="number" class="form-control" id="age-upload" name="age-upload" placeholder="age">
+                        </div>
+                    </form>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary close-btn-popup" data-bs-dismiss="modal">閉じる</button>
+              </div>
+            </div>
+          </div>
+        </div>
     </div>
     <div class="col-2">
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="/js/profile.js"></script>
+<style>
+        .profile-container {
+            width: 130px;
+            height: 130px;
+        }
+
+        .profile-image {
+            width: 90%;
+            height: 90%;
+            object-fit: cover;
+        }
+</style>

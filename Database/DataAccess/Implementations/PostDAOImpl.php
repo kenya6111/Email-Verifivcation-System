@@ -9,7 +9,7 @@ use Models\Post;
 
 class PostDAOImpl implements PostDAO
 {
-    public function create(string $text, ?string $file_path,string $file_name,string $mime_type,string $size,?string $shared_url,?int $reply_to_id): bool
+    public function create(string $text="", ?string $file_path, ?string $video_file_path, string $file_name,string $mime_type,string $size,?string $shared_url,?int $reply_to_id): bool
     {
         //if ($user->getId() !== null) throw new \Exception('Cannot create a user with an existing ID. id: ' . $user->getId());
 
@@ -24,7 +24,7 @@ class PostDAOImpl implements PostDAO
                 $reply_to_id,
                 $text,
                 $file_path,
-                null,
+                $video_file_path,
                 null,
                 "published",
                 $_SESSION['user_id']

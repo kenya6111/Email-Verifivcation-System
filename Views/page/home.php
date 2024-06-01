@@ -93,8 +93,12 @@ $dummyposts=[
                         <textarea class="form-control" name="text" placeholder="write something here " rows="3"></textarea>
                     </div>
                     <div class="mb-3">
-                        <label for="file-upload" class="form-label"><i class="fas fa-camera"></i> メディアをアップロード</label>
+                        <label for="file-upload" class="form-label"><i class="fas fa-camera"></i> 画像をアップロード</label>
                         <input type="file" class="form-control" id="file-upload" name="file-upload">
+                    </div>
+                    <div class="mb-3">
+                        <label for="file-upload-movie" class="form-label"><i class="fas fa-camera"></i> 動画をアップロード</label>
+                        <input type="file" class="form-control" id="file-upload-movie" name="file-upload-movie">
                     </div>
                     <button type="submit" class="btn btn-primary float-end">ポストする</button>
                 </form>
@@ -119,9 +123,16 @@ $dummyposts=[
                                 <div class="mx-5">
                                     <p> <?= htmlspecialchars($post['message']) ?> </p>
                                 </div>
-                                <div class="mx-5 mb-3">
-                                    <img src=" <?= "/uploads/".$post['image'] ?>" class="img-fluid" alt="">
-                                </div>
+                                <?php if ($post['image']): ?>
+                                    <div class="mx-5 mb-3">
+                                        <img src=" <?= "/uploads/".$post['image'] ?>" class="img-fluid" alt="">
+                                    </div>
+                                <?php endif; ?>
+                                <?php if ($post['video']): ?>
+                                    <video width="320" height="240" controls>
+                                        <source src="<?= "/uploads/".htmlspecialchars($post['video']); ?>" type="video/mp4">
+                                    </video>
+                                <?php endif; ?>
                                 <div>
                                     <div class="row justify-content-end">
                                         <div class="col-3">

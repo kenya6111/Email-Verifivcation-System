@@ -232,4 +232,28 @@ class MessageDAOImpl implements MessageDAO
         return $postsRaw;
 
     }
+
+    public function insert(int $sendUserId, int $recieveUserId, $message ,$iv): ?bool{
+        $mysqli = DatabaseManager::getMysqliConnection();
+
+        $query = 
+        <<<SQL
+            INSERT INTO messages (send_user_id, receive_user_id, message,iv)
+            VALUES (?, ?, ?, ?);
+        SQL;
+
+        $result = $mysqli->prepareAndExecute(
+            $query,
+            'iiss',
+            [
+                $sendUserId,
+                $recieveUserId,
+                $message,
+                $iv
+            ]
+        );
+       
+        if (!$result) return false;
+        return true;
+    }
 }

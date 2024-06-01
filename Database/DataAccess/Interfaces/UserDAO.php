@@ -8,6 +8,7 @@ interface UserDAO
 {
     public function create(User $user, string $password): bool;
     public function getById(int $id): ?User;
+    public function getById2(int $id): array;
     public function getByEmail(string $email): ?User;
     public function update(User $user, string $password, ?string $email_confirmed_at): bool;
     public function getHashedPasswordById(int $id): ?string;
@@ -21,4 +22,5 @@ interface UserDAO
     public function insertLikeRaw(int $post_id,int $user_id): ?bool;
     public function deleteLike(int $post_id,int $user_id): ?bool;
     public function deleteLikeRaw(int $post_id,int $user_id): ?bool;
+    public function updateProfile(int $user_id, string $name, string $introduction, string $address, string $hobby, int $age, string $imagePathFromUploadDir): ?bool;
 }

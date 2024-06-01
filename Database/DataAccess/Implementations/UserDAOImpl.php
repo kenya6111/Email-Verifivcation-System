@@ -272,4 +272,49 @@ class UserDAOImpl implements UserDAO
 
         return true;
     }
+    public function updateProfile(int $user_id, string $name, string $introduction, string $address, string $hobby, int $age, string $imagepath): bool
+    {
+        if ($user_id === null) throw new \Exception('The specified user has no ID.');
+       
+        $mysqli = DatabaseManager::getMysqliConnection();
+
+        $query = 
+        <<<SQL
+            UPDATE users
+            SET
+                username = ?,
+                age = ?,
+                address = ?,
+                hobby = ?,
+                self_introduction = ?,
+                profile_image = ?,
+                updated_at = NOW() -- 更新日時を現在の日時に設定
+            WHERE
+                id = ?; -- 更新したいユーザーのIDを指定
+        SQL;
+
+        $result = $mysqli->prepareAndExecute(
+            $query,
+            'sissssi',
+            [
+                $name,
+                $age,
+                $address,
+                $hobby,
+                $introduction,
+                $imagepath,
+                $user_id
+            ]
+        );
+       
+        if (!$result) return false;
+        return true;
+    }
+    public function getById2(int $id): array
+    {
+        $userRaw = $this->getRawById($id);
+        if($userRaw === null) return null;
+
+        return $userRaw;
+    }
 }

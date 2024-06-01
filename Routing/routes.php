@@ -401,20 +401,25 @@ return [
                 $noticeDao = DAOFactory::getNoticeDAO();
                 $result = $noticeDao->create($userID,$_SESSION['user_id'],"reply",$postID);
             };
+            $message="";
+            if(strlen($_POST['text']) !=0){
+                $required_fields = [
+                    'text' => ValueType::STRING,
+                ];
+                // 入力に対する単純な認証。実際のシナリオでは、要件を満たす完全な認証が必要になることがあります
+                $validatedData = ValidationHelper::validateFields($required_fields, $_POST);
 
-            $required_fields = [
-                'text' => ValueType::STRING,
-            ];
-            // 入力に対する単純な認証。実際のシナリオでは、要件を満たす完全な認証が必要になることがあります
-            $validatedData = ValidationHelper::validateFields($required_fields, $_POST);
-
+                $message = $validatedData['text'];
+            }
 
             $postDao = DAOFactory::getPostDAO();
 
             // シンプルな検証
             //$validatedData = ValidationHelper::validateFields($required_fields, $_POST);
+            $uploadflg=false;
             $imagePathFromUploadDir = null; // デフォルトでは画像のパスを null に設定
         if (isset($_FILES['file-upload']) && $_FILES['file-upload']['error'] !== UPLOAD_ERR_NO_FILE) {
+            $uploadflg=true;
           
             $tmpPath = $_FILES['file-upload']['tmp_name'];
             $finfo = new finfo(FILEINFO_MIME_TYPE);
@@ -458,10 +463,72 @@ return [
         }
 
 
+        //$imagePathFromUploadDir = null; // デフォルトでは画像のパスを null に設定
+        if (isset($_FILES['file-upload-movie']) && $_FILES['file-upload-movie']['error'] !== UPLOAD_ERR_NO_FILE && !$uploadflg) {
+          
+            $tmpPath = $_FILES['file-upload-movie']['tmp_name'];
+            $finfo = new finfo(FILEINFO_MIME_TYPE);
+            //$mimeType = finfo_file($finfo, $_FILES['file-upload']['tmp_name']);
+            $mime = $finfo->file($tmpPath);
+            // $byteSize = filesize($tmpPath);
 
-            $message = $validatedData['text'];
+            $ipAddress = $_SERVER['REMOTE_ADDR'];
+             /* 拡張子情報の取得・セット */
+            //  $imginfo = getimagesize($_FILES['file-upload-movie']['tmp_name']);
+            // if($imginfo['mime'] == 'image/jpeg'){ $extension = ".jpg"; }
+            // if($imginfo['mime'] == 'image/png'){ $extension = ".png"; }
+            // if($imginfo['mime'] == 'image/gif'){ $extension = ".gif"; }
+
+
+            $extension = "";
+            if ($mime == 'video/mp4') { 
+                $extension = "mp4"; 
+            } elseif ($mime == 'video/avi') { 
+                $extension = "avi"; 
+            } elseif ($mime == 'video/quicktime') { 
+                $extension = "mov"; 
+            } elseif ($mime == 'video/3gpp') { 
+                $extension = "3gp"; 
+            } elseif ($mime == 'video/mpeg') { 
+                $extension = "mpeg"; 
+            } else {
+                echo "Unsupported video format.";
+                exit;
+            }
+            //$extension = explode('/', $mime)[1];
+
+            $filename = hash('sha256', uniqid(mt_rand(), true)) . '.' . $extension;
+            $uploadDir =   './uploads/'; 
+            $subdirectory = substr($filename, 0, 2);
+            $videoPath = $uploadDir .  $subdirectory. '/' . $filename;
+            // アップロード先のディレクトリがない場合は作成
+            if(!is_dir(dirname($videoPath))){
+                mkdir(dirname($videoPath),0777,true);
+                chmod(dirname($videoPath), 0775);
+            }
+            // $imagesDir =   './images/';
+            // $svgfilename = 'checkmark.svg';
+            // chmod(dirname($imagesDir.$svgfilename), 0775);
+
+            // アップロードにした場合は失敗のメッセージを送る
+            if(move_uploaded_file($tmpPath, $videoPath)){
+                chmod($videoPath, 0664);
+            }else{
+                return new JSONRenderer(['success' => false, 'message' => 'アップロードに失敗しました。']);
+            }
+
+            $hash_for_shared_url = hash('sha256', uniqid(mt_rand(), true));
+            // $hash_for_delete_url = hash('sha256', uniqid(mt_rand(), true));
+            $shared_url = '/' . $extension . '/' . $hash_for_shared_url;
+            // $delete_url = '/' .  'delete' . '/' . $hash_for_delete_url;
+            $videoPathFromUploadDir = $subdirectory . '/'.$filename;
+
+        }
+
+
             
-            $result = $postDao->create($message,$imagePathFromUploadDir,$_FILES['file-upload']['name'],$_FILES['file-upload']['type'],$_FILES['file-upload']['size'],$shared_url,$postID);
+            
+            $result = $postDao->create($message,$imagePathFromUploadDir,$videoPathFromUploadDir,$_FILES['file-upload']['name'],$_FILES['file-upload']['type'],$_FILES['file-upload']['size'],$shared_url,$postID);
 
             $posts = $postDao->getPostsOrderedByLikesDesc();
             
@@ -488,7 +555,7 @@ return [
         $posts=null;
         if(isset($_GET['user_id'])){
             $id = ValidationHelper::integer($_GET['user_id']);
-            $user = $userDao->getById($id);
+            $user = $userDao->getById2($id);
             $posts = $postDao->getById($id);
             $followNum = $userDao->getFollowNumById($id);
             $followerNum = $userDao->getFollowerNumById($id);
@@ -544,13 +611,21 @@ return [
         $messages = $messageDao ->getByUserId($_SESSION['user_id']);
         $loginUserId=$_SESSION['user_id'];
 
+        $password = 'password1234';
+        $method = 'aes-128-cbc';
+        // $ivLength = openssl_cipher_iv_length($method);
+        // $iv = openssl_random_pseudo_bytes($ivLength);
+        $options = 0;
+
         $groupedMessages = [];
 
         foreach ($messages as $message) {
            // 相手ユーザーのIDと名前を特定
             if ($message['send_user_id'] == $_SESSION['user_id']) {
                 $otherUserId = $message['receive_user_id'];
-                $otherUsername = $userDao->getById($otherUserId)->getUsername();
+                $user = $userDao->getById($otherUserId);
+                $otherUsername = $user->getUsername();
+                $otherUserId = $user->getId();
             } else {
                 $otherUserId = $message['send_user_id'];
                 $otherUsername = $message['username'];
@@ -560,10 +635,14 @@ return [
             if (!isset($groupedMessages[$otherUserId])) {
                 $groupedMessages[$otherUserId] = [
                     'username' => $otherUsername,
+                    'userID' => $otherUserId,
                     'messages' => []
                 ];
             }
+            
+            $decrypted = openssl_decrypt($message['message'], $method, $password, $options, $message['iv']);
         
+            $message['message'] = $decrypted;
             // メッセージを追加
             $groupedMessages[$otherUserId]['messages'][] = $message;
         }
@@ -621,6 +700,152 @@ return [
         }
 
         return new JSONRenderer(['status' => 'success', 'message' => 'like is success!']);
+    })->setMiddleware(['auth']),
+    'form/profile' => Route::create('form/profile', function (): HTTPRenderer {
+
+        try {
+            $userDao = DAOFactory::getUserDAO();
+
+            $name = $_POST['name-upload'];
+            $introduction = $_POST['introduction-upload'];
+            $address = $_POST['address-upload'];
+            $hobby = $_POST['hobby-upload'];
+            $age = $_POST['age-upload'];
+            // age
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') throw new Exception('Invalid request method!');
+
+            // $postID=null;
+            // if($_GET['post_id']!==null){
+            //     $postID=$_GET['post_id'];
+            //     $userID=$_GET['user_id'];
+
+            //     $noticeDao = DAOFactory::getNoticeDAO();
+            //    // $result = $noticeDao->create($userID,$_SESSION['user_id'],"reply",$postID);
+            // };
+
+            // $required_fields = [
+            //     'text' => ValueType::STRING,
+            // ];
+            // 入力に対する単純な認証。実際のシナリオでは、要件を満たす完全な認証が必要になることがあります
+           // $validatedData = ValidationHelper::validateFields($required_fields, $_POST);
+
+
+            //$postDao = DAOFactory::getPostDAO();
+
+            // シンプルな検証
+            //$validatedData = ValidationHelper::validateFields($required_fields, $_POST);
+            $imagePathFromUploadDir = null; // デフォルトでは画像のパスを null に設定
+        if (isset($_FILES['file-upload']) && $_FILES['file-upload']['error'] !== UPLOAD_ERR_NO_FILE) {
+          
+            $tmpPath = $_FILES['file-upload']['tmp_name'];
+            $finfo = new finfo(FILEINFO_MIME_TYPE);
+            $mime = $finfo->file($tmpPath);
+            $byteSize = filesize($tmpPath);
+
+            $ipAddress = $_SERVER['REMOTE_ADDR'];
+             /* 拡張子情報の取得・セット */
+             $imginfo = getimagesize($_FILES['file-upload']['tmp_name']);
+            if($imginfo['mime'] == 'image/jpeg'){ $extension = ".jpg"; }
+            if($imginfo['mime'] == 'image/png'){ $extension = ".png"; }
+            if($imginfo['mime'] == 'image/gif'){ $extension = ".gif"; }
+
+            $extension = explode('/', $mime)[1];
+
+            $filename = hash('sha256', uniqid(mt_rand(), true)) . '.' . $extension;
+            $uploadDir =   './uploads/'; 
+            $subdirectory = substr($filename, 0, 2);
+            $imagePath = $uploadDir .  $subdirectory. '/' . $filename;
+            // アップロード先のディレクトリがない場合は作成
+            if(!is_dir(dirname($imagePath))){
+                mkdir(dirname($imagePath),0777,true);
+                chmod(dirname($imagePath), 0775);
+            }
+            // $imagesDir =   './images/';
+            // $svgfilename = 'checkmark.svg';
+            // chmod(dirname($imagesDir.$svgfilename), 0775);
+
+            // アップロードにした場合は失敗のメッセージを送る
+            if(move_uploaded_file($tmpPath, $imagePath)){
+                chmod($imagePath, 0664);
+            }else{
+                return new JSONRenderer(['success' => false, 'message' => 'アップロードに失敗しました。']);
+            }
+
+            $hash_for_shared_url = hash('sha256', uniqid(mt_rand(), true));
+            // $hash_for_delete_url = hash('sha256', uniqid(mt_rand(), true));
+            $shared_url = '/' . $extension . '/' . $hash_for_shared_url;
+            // $delete_url = '/' .  'delete' . '/' . $hash_for_delete_url;
+            $imagePathFromUploadDir = $subdirectory . '/'.$filename;
+        }
+
+
+
+            //$message = $validatedData['text'];
+            
+            $result = $userDao->updateProfile($_SESSION['user_id'],$name,$introduction,$address,$hobby,$age,$imagePathFromUploadDir);
+
+            //$posts = $postDao->getPostsOrderedByLikesDesc();
+            
+
+            // return new HTMLRenderer('page/home',['posts'=>$posts]);
+            return new RedirectRenderer('profile?user_id=' . $_SESSION['user_id']);
+            
+        } catch (\InvalidArgumentException $e) {
+            error_log($e->getMessage());
+
+            FlashData::setFlashData('error', 'Invalid Data.');
+            return new RedirectRenderer('register');
+        } catch (Exception $e) {
+            error_log($e->getMessage());
+
+            FlashData::setFlashData('error', 'An error occurred.');
+            return new RedirectRenderer('register');
+        }
+    })->setMiddleware(['auth']),
+    'send/message' => Route::create('send/message', function (): HTTPRenderer {
+
+        // 暗号化するデータ
+        $data = 'Hello, World!';
+
+        // パスワード
+        $password = 'password1234';
+
+        // 利用可能な暗号化方式一覧
+        //$methods = openssl_get_cipher_methods();
+
+        // 暗号化方式
+        $method = 'aes-128-cbc';
+
+        // 方式に応じたIV(初期化ベクトル)に必要な長さを取得
+        $ivLength = openssl_cipher_iv_length($method);
+
+        // IV を自動生成
+        $iv = openssl_random_pseudo_bytes($ivLength);
+
+        // OPENSSL_RAW_DATA と OPENSSL_ZERO_PADDING を指定可
+        $options = 0;
+
+        // 暗号化
+        $iv_base64 = base64_encode($iv); // IVをbase64でエンコードして保存しやすくする
+        $encrypted = openssl_encrypt($_POST['message'], $method, $password, $options, $iv_base64);
+        
+        $messageDao = DAOFactory::getMessageDAO();
+        $messages = $messageDao ->insert($_SESSION['user_id'],$_GET['user_id'],$encrypted,$iv_base64);
+        // 復号
+        $decrypted = openssl_decrypt($encrypted, $method, $password, $options, $iv);
+        var_dump($decrypted);
+
+                // $userDao = DAOFactory::getUserDAO();
+                // $noticeDao = DAOFactory::getNoticeDAO();
+                // if(isset($_POST['post_id'])){
+                //     $post_id = ValidationHelper::integer($_POST['post_id']);
+                //     $user_id = ValidationHelper::integer($_POST['user_id']);
+                //     $result = $userDao->insertLike($post_id,$_SESSION['user_id']);
+                //     $result = $noticeDao->create($user_id,$_SESSION['user_id'],"like",$post_id);
+        // }
+
+
+        return new RedirectRenderer('message');
     })->setMiddleware(['auth']),
 ];
 
